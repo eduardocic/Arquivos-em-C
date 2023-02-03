@@ -2,7 +2,7 @@
 TARGET    = main
 TARGET_C  = $(TARGET).c
 CC        = gcc
-CFLAGS    = -W -Wall -ansi -pedantic -lm -std=c99
+CFLAGS    = -lm -std=c99 #-W -Wall -ansi -pedantic 
 RM        = rm -rf
 
 # Arquivos, headers e aqueles gerados do tipo '*.o'
@@ -31,5 +31,8 @@ all:
 
 clean:
 	$(RM) $(TARGET)
+	mv *.c ./src/
+	mv *.h ./include/
+	mv ./src/$(TARGET_C) .
 	
 .PHONY: all clean	

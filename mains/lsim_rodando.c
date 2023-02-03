@@ -1,8 +1,6 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <math.h>
-#include <time.h>
-
 
 #include "matrix.h"
 #include "calc_num.h"
@@ -10,14 +8,9 @@
 #include "control_system.h"
 
 
-
 int main(void){
 
-	clock_t start_t, end_t;
-	double total_t;
-
-	start_t = clock();
-//	printf("Hello, world!\n");
+	printf("Hello, world!\n");
 
 	/* ================================== */	
 	/*    Criando a estrutura de dados    */
@@ -46,8 +39,6 @@ int main(void){
 
 	/* Tempo total de simulação 	   */	
 	matrix *t = linspace(0.0, 8.0, 201);
-	
-	/* Vetor de entradas 			   */
 	matrix *u = linspace(0.0, 0.0, 201);
 	for(int i = 0 ; i < 201 ; i++){
 		double MAX, MIN;
@@ -55,16 +46,11 @@ int main(void){
 		MAX = max(	    			0.0, MIN);
 		set(MAX, u, i, 0);
 	}
-	
-	/* Condição inicial 		*/
 	matrix *x0 = new_matrix(2, 1);
 	set(0.0, x0, 0, 0);
 	set(0.0, x0, 1, 0);
 	
-	/* Saída 					*/
 	matrix *y = lsim(sys, u, t, x0);
-	
-	
 	
 	FILE *fp;
     fp = fopen("lsim.txt", "w");
@@ -75,12 +61,7 @@ int main(void){
                 get(y, i, 0),
                 get(u, i, 0));
 	}
-	fclose(fp);
-	
-	end_t = clock();
-	total_t = (double)(end_t - start_t) / CLOCKS_PER_SEC;
-	printf("Total time taken by CPU: %f\n", total_t);
-	printf("Exiting of the program...\n");
+		
 	return 0;
 }
 

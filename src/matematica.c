@@ -1,7 +1,7 @@
 #include <time.h>
 #include <stdlib.h>
 #include "matrix.h"
-#include "mat.h"
+#include "matematica.h"
 
 
 void randu(int size, double minValue, double maxValue, int seed, matrix *M){
@@ -65,7 +65,37 @@ int fatorial(int x){
 }
 
 
+matrix* linspace(double x1, double x2, int n){
 
+	/* Variáveis auxiliares */
+	matrix *e = new_matrix(n, 1);
+	double dE = (x2 - x1)/(n-1);
+
+	/* Recorrência */
+	int cont = 0;
+	for (double i = x1 ; cont < n ; i+=dE){
+		set(i, e, cont, 0);
+		cont++; 
+	}
+	return e;
+}
+
+
+
+double min(double a, double b){
+	if (a >= b)
+		return b;
+	else
+		return a;
+}
+
+
+double max(double a, double b){
+	if (a >= b)
+		return a;
+	else
+		return b;
+}
 
 
 

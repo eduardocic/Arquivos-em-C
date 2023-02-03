@@ -11,9 +11,9 @@ import pandas as pd
 
 #if temp = 0
 #tabela = pd.read_table("test.txt", delimiter='\n')
-tabela = pd.read_excel("random.xlsx")
+tabela = pd.read_excel("lsim.xlsx")
 #print(tabela)
-tabela.columns= ['t', "xk1", "xk2", "xh1", "xh2", "xh3", "p11", "p22", "p33"]
+tabela.columns= ['t', "y", "y"]
 
 t   = tabela['t']
 xk1 = tabela['xk1']

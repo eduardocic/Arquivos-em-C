@@ -173,7 +173,7 @@ void add(matrix *A,
          matrix *Output){
 
     if ( (A->lines != B->lines) || (A->columns != B->columns) )
-        printf("Dimensão diferente entre as matrizes \n");
+        printf("Dimensão diferente entre as matrizes -- SOMA\n");
 
     for (int i = 0 ; i < (A->lines * A->columns) ; i++){
         Output->data[i] =  A->data[i] + B->data[i];
@@ -189,7 +189,7 @@ void sub(matrix *A,
          matrix *Output){
 
     if ( (A->lines != B->lines) || (A->columns != B->columns) )
-        printf("Dimensão diferente entre as matrizes \n");
+        printf("Dimensão diferente entre as matrizes -- SUBTRAÇÃO\n");
 
     for (int i = 0 ; i < (A->lines * A->columns) ; i++){
         Output->data[i] =  A->data[i] - B->data[i];

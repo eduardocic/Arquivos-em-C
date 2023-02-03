@@ -24,7 +24,7 @@ void RK2_init(int n, RK2_struct *ptr){
 
 
 
-void RK2(ptrFuncao function, double t, double h, matrix *x, matrix *u, matrix *xnew){
+void RK2(ptrFuncao_MMM function, double t, double h, matrix *x, matrix *u, matrix *xnew){
 /* +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
    Procedimento que resolve o seguinte problema :
     _
@@ -96,106 +96,6 @@ Eduardo H. Santos
 
 
 
-
-
-
-
-void RK4(ptrFuncao function, double t, double h, matrix *x, matrix *u, matrix *xnew){
-/* +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-   Procedimento que resolve o seguinte problema:
-    _
-   |  
-   |    k1 = h * f[          x_n ,        t_n  ]        (EQ. 1) 
-   |    k2 = h * f[ (x_n + k1/2) , (t_n + h/2) ]        (EQ. 2)
- --|    k3 = h * f[ (x_n + k2/2) , (t_n + h/2) ]        (EQ. 3) 
-   |    k4 = h * f[   (x_n + k3) ,   (t_n + h) ]        (EQ. 4)  
-   |_x_n1  = x_n + (1/6)*(k1 + 2*k2 + 2*k3 + k4)        (EQ. 5)
-
-em que:
-
-   i) x_n1 .........: simbologia para 'x_{n+1}';
-  ii) x_n ..........: simbologia para 'x_{n}'; e
- iii) h ............: simbologia para o passo de simulação.  
-
-
- PARAMETROS DA FUNÇÃO
-======================
-
-    1. function .........: é um ponteiro para função;
-    2. x .............: matriz de entrada de parâmetros;
-    3. t ................: variável tempo corrente;
-    4. h ................: passo de interação; e
-    5. x_out ............: matriz com os parâmetros de saída.
-
-Eduardo H. Santos
-18/01/2023
-+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++ */
-
-    /* Criando uma matriz temporária a ser utilizada recorrentemente */
-    /* ============================================================= */
-
-    static bool flag = false;
-    static RK4_struct ptr = { .temp     = NULL, 
-                              .k1       = NULL,
-                              .k2       = NULL,
-                              .k3       = NULL, 
-                              .k4       = NULL,
-                              .hh       = NULL,
-                              .meio     = NULL,
-                              .dois     = NULL,
-                              .umsexto  = NULL};
-
-    /* Inicializa as variáveis static a serem utilizadas apenas dentro aqui */
-    /* ==================================================================== */
-    if (!flag){
-
-        // Inicialização dos parâmetros de RK2
-        RK4_init(x->lines, &ptr);
-
-        // Faz a inicialização das matrizes pertinentes.
-        ptr.hh->data[0]      = h;
-        ptr.meio->data[0]    = 0.5;
-        ptr.dois->data[0]    = 2.0;
-        ptr.umsexto->data[0] = 1.0/6;
-        flag = true;
-    }
-
-    /*  (EQ. 1)           k1 = h * f[ x_n, t_n]              */
-    /* ===================================================== */  
-    (*function)(t, x, u, ptr.temp);
-    prod(ptr.hh, ptr.temp, ptr.k1);  
-
-    /*  (EQ. 2)  k2 = h * f[ (x_n + k1/2) , (t_n + h/2) ]    */
-    /* ===================================================== */  
-    prod(ptr.meio, ptr.k1, ptr.temp);               
-    add(x, ptr.temp, ptr.temp);
-    (*function)((t + 0.5*h), ptr.temp, u, ptr.temp);
-    prod(ptr.hh, ptr.temp, ptr.k2);
-
-    /*  (EQ. 3)  k3 = h * f[ (x_n + k2/2) , (t_n + h/2) ]    */
-    /* ===================================================== */         
-    prod(ptr.meio, ptr.k2, ptr.temp);               
-    add(x, ptr.temp, ptr.temp);
-    (*function)((t + 0.5*h), ptr.temp, u, ptr.temp);
-    prod(ptr.hh, ptr.temp, ptr.k3);
-
-    /*  (EQ. 4)    k4 = h * f[ x_n + k3,   (t_n + h) ]       */
-    /* ===================================================== */       
-    add(x, ptr.k3, ptr.temp);
-    (*function)((t + h), ptr.temp, u, ptr.temp);
-    prod(ptr.hh, ptr.temp, ptr.k4);
-
-    /*  (EQ. 5)  x_n1  = x_n + (1/6)*(k1 + 2*k2 + 2*k3 + k4) */
-    /* ===================================================== */ 
-    prod(ptr.dois, ptr.k2, ptr.k2);
-    prod(ptr.dois, ptr.k3, ptr.k3);
-    add(ptr.k1, ptr.k2, ptr.temp);
-    add(ptr.temp, ptr.k3, ptr.temp);
-    add(ptr.temp, ptr.k4, ptr.temp);
-    prod(ptr.umsexto, ptr.temp, xnew);
-    add(x, xnew, xnew); 
-}
-
 void RK4_init(int n, RK4_struct *ptr){
 
     /* Aloca espaço para matrizes utilizadas no programa. */
@@ -223,10 +123,91 @@ void RK4_init(int n, RK4_struct *ptr){
 
 
 
+void RK4(ptrFuncao_MMM function, double t, double h, matrix *x, matrix *u, matrix *xnew){
+/* +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+   Procedimento que resolve o seguinte problema:
+    _
+   |  
+   |    k1 = h * f[          x_n ,        t_n  ]        (EQ. 1) 
+   |    k2 = h * f[ (x_n + k1/2) , (t_n + h/2) ]        (EQ. 2)
+ --|    k3 = h * f[ (x_n + k2/2) , (t_n + h/2) ]        (EQ. 3) 
+   |    k4 = h * f[   (x_n + k3) ,   (t_n + h) ]        (EQ. 4)  
+   | x_n1  = x_n + (1/6)*(k1 + 2*k2 + 2*k3 + k4)        (EQ. 5)
+   |_
+
+Eduardo H. Santos
+18/01/2023
++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++ */
+
+    /* Criando uma matriz temporária a ser utilizada recorrentemente */
+    /* ============================================================= */
+    static bool flag = false;
+    static RK4_struct ptr = { .temp     = NULL, 
+                              .k1       = NULL,
+                              .k2       = NULL,
+                              .k3       = NULL, 
+                              .k4       = NULL,
+                              .hh       = NULL,
+                              .meio     = NULL,
+                              .dois     = NULL,
+                              .umsexto  = NULL};
+
+    /* Inicializa as variáveis static a serem utilizadas apenas dentro aqui */
+    /* ==================================================================== */
+    if (!flag){
+        // Inicialização dos parâmetros de RK2
+        RK4_init(x->lines, &ptr);
+
+        // Faz a inicialização das matrizes pertinentes.
+        ptr.hh->data[0]      = h;
+        ptr.meio->data[0]    = 0.5;
+        ptr.dois->data[0]    = 2.0;
+        ptr.umsexto->data[0] = 1.0/6;
+        flag = true;
+    }
+
+    /*  (EQ. 1)           k1 = h * f[ x_n, t_n]              */
+    /* ===================================================== */  
+    (*function)(t, x, u, ptr.temp);
+    prod(ptr.hh, ptr.temp, ptr.k1);
+
+    /*  (EQ. 2)  k2 = h * f[ (x_n + k1/2) , (t_n + h/2) ]    */
+    /* ===================================================== */  
+    prod(ptr.meio, ptr.k1, ptr.temp);               
+    add(x, ptr.temp, ptr.temp);
+    (*function)((t + 0.5*h), ptr.temp, u, ptr.temp);
+    prod(ptr.hh, ptr.temp, ptr.k2);
+
+    /*  (EQ. 3)  k3 = h * f[ (x_n + k2/2) , (t_n + h/2) ]    */
+    /* ===================================================== */         
+    prod(ptr.meio, ptr.k2, ptr.temp);
+    add(x, ptr.temp, ptr.temp);         
+    (*function)((t + 0.5*h), ptr.temp, u, ptr.temp);
+    prod(ptr.hh, ptr.temp, ptr.k3);
+
+    /*  (EQ. 4)    k4 = h * f[ x_n + k3,   (t_n + h) ]       */
+    /* ===================================================== */       
+    add(x, ptr.k3, ptr.temp);
+    (*function)((t + h), ptr.temp, u, ptr.temp);
+    prod(ptr.hh, ptr.temp, ptr.k4);
+
+    /*  (EQ. 5)  x_n1  = x_n + (1/6)*(k1 + 2*k2 + 2*k3 + k4) */
+    /* ===================================================== */ 
+    prod(ptr.dois, ptr.k2, ptr.k2);
+    prod(ptr.dois, ptr.k3, ptr.k3);
+    add(ptr.k1, ptr.k2, ptr.temp);
+    add(ptr.temp, ptr.k3, ptr.temp);
+    add(ptr.temp, ptr.k4, ptr.temp);
+    prod(ptr.umsexto, ptr.temp, xnew);
+    add(x, xnew, xnew); 
+}
+
+
+
 
 /* Integral genérica */
 /* ================= */
-double integral(ptrFuncao function, double t0, double tf){
+double integral(ptrFuncao_D function, double t0, double tf){
 /* ================================================================
  *
  *  --> Todas as informações contidas nesta função eu peguei do se-
@@ -313,7 +294,6 @@ double integral(ptrFuncao function, double t0, double tf){
      * ============================================= */
     soma = 0.0;
     xm   = (t0 + tf) / 2;    
-    double fxm;
     soma += (*function)(t0) * (1.0/3);
     soma += (*function)(xm) * (4.0/3);
     soma += (*function)(tf) * (1.0/3);
@@ -364,7 +344,7 @@ double integral(ptrFuncao function, double t0, double tf){
 
 
 
-//void funcao(double t, matrix *x, matrix *u, matrix *y){
+//void funcao(double t, matrix *x, matrix *u, matrix *xnew){
 //    /* Variável auxiliar temporária */
 //    double temp;
 //    double calc;
@@ -391,7 +371,7 @@ double integral(ptrFuncao function, double t0, double tf){
 
 
 
-//void VanderPol(double t, matrix *x, matrix *u, matrix *y){
+//void VanderPol(double t, matrix *x, matrix *u, matrix *xnew){
 //    /* ===========================================
 //        y[0] = x[1] 
 //        y[1] = -u[0]*(x[0]*x[0] - 1)*x[1] - x[0];

@@ -27,7 +27,7 @@ typedef struct {
 /***********************************************************
                    Protótipos de funções
 ************************************************************/
-double get( matrix *A, int i, int j);
+double get(matrix *A, int i, int j);
 void set(double num, matrix *M, int i, int j);
 void display(matrix *A);
 
