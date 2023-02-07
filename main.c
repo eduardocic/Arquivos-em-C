@@ -17,7 +17,6 @@ int main(void){
 	double total_t;
 
 	start_t = clock();
-//	printf("Hello, world!\n");
 
 	/* ================================== */	
 	/*    Criando a estrutura de dados    */
@@ -42,7 +41,7 @@ int main(void){
 	set( 0.0, D, 0, 0);
 
 	/* Inicialização do sistema linear */
-	lin_sys sys = ss(A, B, C, D);
+	LINEAR_SYSTEM_s sys = ss(A, B, C, D);
 
 	/* Tempo total de simulação 	   */	
 	matrix *t = linspace(0.0, 8.0, 201);
@@ -79,8 +78,8 @@ int main(void){
 	
 	end_t = clock();
 	total_t = (double)(end_t - start_t) / CLOCKS_PER_SEC;
-	printf("Total time taken by CPU: %f\n", total_t);
-	printf("Exiting of the program...\n");
+	printf("Tempo total tomado pela CPU: %f\n", total_t);
+	printf("Saindo do programa ...\n");
 	return 0;
 }
 

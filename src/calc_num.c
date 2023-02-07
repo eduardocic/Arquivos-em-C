@@ -5,7 +5,7 @@
 #include "calc_num.h"
 
 
-void RK2_init(int n, RK2_struct *ptr){
+void RK2_init(int n, RK2_s *ptr){
 
     /* Aloca espaço para matrizes utilizadas no programa. */
     matrix *temp = new_matrix(n, 1);
@@ -58,7 +58,7 @@ Eduardo H. Santos
     /*  Necessária definição da estrutura de RK2   */
     /* =========================================== */
     static bool flag = false;
-    static RK2_struct ptr = { .temp  = NULL, 
+    static RK2_s ptr = { .temp  = NULL, 
                               .k1    = NULL,
                               .k2    = NULL, 
                               .hh    = NULL,
@@ -96,7 +96,7 @@ Eduardo H. Santos
 
 
 
-void RK4_init(int n, RK4_struct *ptr){
+void RK4_init(int n, RK4_s *ptr){
 
     /* Aloca espaço para matrizes utilizadas no programa. */
     matrix *temp     = new_matrix(n, 1);
@@ -142,7 +142,7 @@ Eduardo H. Santos
     /* Criando uma matriz temporária a ser utilizada recorrentemente */
     /* ============================================================= */
     static bool flag = false;
-    static RK4_struct ptr = { .temp     = NULL, 
+    static RK4_s ptr = { .temp     = NULL, 
                               .k1       = NULL,
                               .k2       = NULL,
                               .k3       = NULL, 
@@ -324,26 +324,6 @@ double integral(ptrFuncao_D function, double t0, double tf){
 }
 
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 //void funcao(double t, matrix *x, matrix *u, matrix *xnew){
 //    /* Variável auxiliar temporária */
 //    double temp;
@@ -365,6 +345,10 @@ double integral(ptrFuncao_D function, double t0, double tf){
 //    set(temp, x, 0, 0);     
 //}
 //
+
+
+
+
 
 
 

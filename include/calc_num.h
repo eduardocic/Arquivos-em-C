@@ -8,7 +8,7 @@ typedef struct {
     matrix *k2;
     matrix *hh;
     matrix *meio;
-} RK2_struct;
+} RK2_s;
 
 
 typedef struct {
@@ -21,7 +21,7 @@ typedef struct {
     matrix *meio;
     matrix *dois;
     matrix *umsexto;
-} RK4_struct;
+} RK4_s;
 
 
 /* Definindo ponteiro para função */
@@ -31,17 +31,11 @@ typedef double (*ptrFuncao_D  )(double x);
 /* Métodos de cálculo de derivada */
 void RK2(ptrFuncao_MMM function, double t, double h, matrix *x, matrix *u, matrix *xnew);
 void RK4(ptrFuncao_MMM function, double t, double h, matrix *x, matrix *u, matrix *xnew);
-void RK2_init(int n, RK2_struct *ptr);
-void RK4_init(int n, RK4_struct *ptr);
+void RK2_init(int n, RK2_s *ptr);
+void RK4_init(int n, RK4_s *ptr);
 
 /* Métodos de cálculo de Integral */
 double integral(ptrFuncao_D function, double t0, double tf);
-
-
-
-
-
-
 
 //void funcao(double t, matrix *x, matrix *u, matrix *y);
 //void VanderPol(double t, matrix *x, matrix *u, matrix *y);

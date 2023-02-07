@@ -11,18 +11,15 @@
 /* ======================================================== */
 /* 				Função para soma de variáveis 				*/
 /* ======================================================== */
-void fun_lsim(double t, matrix *x, matrix *u, matrix *xnew){    
+void AxBu(LINEAR_SYSTEM_s sys, double t, matrix *x, matrix *u, matrix *xnew){    
 
-	double x1, x2, uk, x1d, x2d;
-	x1 = get(x, 0, 0);
-	x2 = get(x, 1, 0);
-	uk = get(u, 0, 0);
+	matrix *temp  = new_matrix(x->lines, 1);
+		
+	prod(sys.A, x, temp);
+	prod(sys.B, u, xnew);
+	add(temp, xnew, xnew);
 	
-	x1d = x2;
-	x2d = -3.0 * x1 - 2.0 * x2 + 3.0 * uk;
-	
-	set( x1d, xnew, 0, 0);
-	set( x2d, xnew, 1, 0);
+	free(temp);
 }
 
 
@@ -31,43 +28,99 @@ void fun_lsim(double t, matrix *x, matrix *u, matrix *xnew){
 /* ======================================================== */
 /* 						Função 'lsim'	    				*/
 /* ======================================================== */
-matrix* lsim(lin_sys sys, matrix *u, matrix *t, matrix *x0){
+matrix* lsim(LINEAR_SYSTEM_s sys, matrix *u, matrix *t, matrix *x0){
+	
+	
+	/* ================================================== */	
+	/*				   Setagem inicial  				  */
+	/* ================================================== */
+	/* Inicialização de tempo e de passo de integração do sistema */
+	double h     = (get(t, (t->lines)-1, 0) - 0.0)/t->lines;
+	double time  = get(t, 0, 0);
 	
 	/* Variáveis para auxílio */
-	int num_states  = sys.A->lines;		/* Número de estados 			   */
-	int num_control = sys.B->columns;   /* Número de variáveis de controle */
-	int num_output  = sys.C->lines; 	/* Número de variáveis de saída    */
+	int num_states  = sys.A->lines;						   /* Número de estados 			   */
+	int num_control = sys.B->columns;   				   /* Número de variáveis de controle  */
+	int num_output  = sys.C->lines; 					   /* Número de variáveis de saída     */
 	
 	/* Criando variável auxiliar para cálculo */
 	matrix *yout  = new_matrix(t->lines, num_output);      /* vetor de saída (completo)        */
 	matrix *ytemp = new_matrix( num_output, 1);            /* vetor de saída intermediário     */
 	matrix *x     = new_matrix( num_states, 1);		       /* vetor de estados em 'k'		   */
 	matrix *xnew  = new_matrix( num_states, 1);            /* vetor de estados em 'k+1' 	   */
-	matrix *uu    = new_matrix(num_control, 1);			   /* vetor de entradas em 'k'		   */
+	matrix *uu    = new_matrix(num_control, 1);			   /* vetor de entradas em 'k'		   */	
 		
-	/* Variáveis de inicialização de tempo e de intervalo de integração do sistema */
-	double h     = (get(t, (t->lines)-1, 0) - 0.0)/t->lines;
-	double time  = get(t, 0, 0);
-	
+		
+	/* ================================================== */	
+	/*				   Para o Runge Kutta 				  */
+	/* ================================================== */	
+    matrix *temp     = new_matrix(num_states, 1);
+    matrix *k1       = new_matrix(num_states, 1);
+    matrix *k2       = new_matrix(num_states, 1);
+    matrix *k3       = new_matrix(num_states, 1);
+    matrix *k4       = new_matrix(num_states, 1);
+    matrix *hh       = new_matrix(1, 1);
+    matrix *meio     = new_matrix(1, 1);
+    matrix *dois     = new_matrix(1, 1);
+    matrix *umsexto  = new_matrix(1, 1);
+	set(    h,      hh, 0, 0);
+    set(  0.5,    meio, 0, 0);
+    set(  2.0,    dois, 0, 0);
+    set(1.0/6, umsexto, 0, 0);
+		
+
+	printf("Criado com sucesso \n\n");
+	/* ======================= */	
 	/* Inicializando o sistema */
+	/* ======================= */
 	isequal(x, x0);
 	for (int cont = 0 ; cont < (t->lines) ; cont++){
 		
 		/* Pegar o extrato de 'u' e salvar em 'uu' */
+		/* ======================================= */
 		for (int i = 0 ; i < num_control ; i++){
 			set(get(u, cont, i), uu, i, 0);
 		}		
 		
-		/* Executa o loop */				
-		RK4(fun_lsim, time, h, x, uu, xnew);			
+		/* ===================================================== */
+		/* Executa o loop */	
+		// RK4(AxBu, time, h, x, uu, xnew);			
+	    AxBu(sys, time, x, uu, temp);
+	    prod(hh, temp, k1); 
+	    
+	    prod( meio, k1, temp);
+	    add(x, temp, temp); 
+		AxBu(sys, (time + 0.5*h), temp, uu, temp);
+		prod(hh, temp, k2);
 		
+		prod( meio, k2, temp);
+	    add(x, temp, temp); 
+		AxBu(sys, (time + 0.5*h), temp, uu, temp);
+		prod(hh, temp, k3);
+	
+	    add( x, k3, temp); 
+		AxBu(sys, (time + h), temp, uu, temp);
+		prod(hh, temp, k4);
+	
+		/* resultado */
+		prod(   dois,   k2,   k2);
+		prod(   dois,   k3,   k3);
+		add(      k1,   k2, temp);
+		add(    temp,   k3, temp);
+		add(    temp,   k4, temp);
+		prod(umsexto, temp, xnew);
+		add(       x, xnew, xnew); 
+	    /* ===================================================== */
+	
 		/* Pega a saída */
+		/* ============ */
 		prod(sys.C, x, ytemp);
 		for (int i = 0 ; i < num_output ; i++){
 			set(get(ytemp, i, 0), yout, cont, i);
 		}
 		
-		/* Atualiza o estado e o contador */
+		/*  Atualiza o estado e o contador */
+		/* ================================ */
 		isequal(x, xnew);
 		time += h;
 	}
@@ -77,20 +130,29 @@ matrix* lsim(lin_sys sys, matrix *u, matrix *t, matrix *x0){
 	free(x);
 	free(xnew);
 	free(uu);
-		
+//	free(temp);
+//	free(k1);
+//	free(k2);
+//	free(k3);
+//	free(k4);
+//	free(hh);
+//	free(meio);
+//	free(dois);
+//	free(umsexto);
+	
 	return yout;
 }
 
 
 
 
-lin_sys ss(matrix *a, matrix *b, matrix *c, matrix *d){
+LINEAR_SYSTEM_s ss(matrix *a, matrix *b, matrix *c, matrix *d){
 /* ========================================================
- *  Esta função salva na estrutura do tipo 'lin_sys' os pa-
+ *  Esta função salva na estrutura do tipo 'LINEAR_SYSTEM_s' os pa-
  *  râmetros de um sistema linear
  * ======================================================== */
 	/* Cria uma estrutura */
-	lin_sys e;
+	LINEAR_SYSTEM_s e;
 	
 	/* Variáveis para auxílio */
 	int num_states  = a->lines;		/* Número de estados 			   */
@@ -140,7 +202,7 @@ void kalman(matrix *P_k_1, matrix *PHI_k, matrix *Q_k, matrix *R_k, matrix *H, m
  *    4. R_k ............: tem dimensão 'p x p';
  *    5. H ..............: tem dimensão 'p x n';
  *    6. K_k ............: tem dimensão 'n x p'; e
- *    7. ptr ............: ponteiro para estrutura do tipo 'SKalman'.
+ *    7. ptr ............: ponteiro para estrutura do tipo 'KALMAN_s'.
  *
  * Eduardo H. Santos
  * 25/01/2023
@@ -149,15 +211,15 @@ void kalman(matrix *P_k_1, matrix *PHI_k, matrix *Q_k, matrix *R_k, matrix *H, m
     /* Necessária definição da estrutura de Kalman */
     /* =========================================== */
     static bool flag = false;
-    static SKalman ptr = { .PHIk_t   = NULL, 
-                           .Mk       = NULL,
-                           .H_t      = NULL, 
-                           .temp_nxp = NULL,
-                           .temp_nxn = NULL, 
-                           .temp_pxn = NULL, 
-                           .soma     = NULL, 
-                           .inv_soma = NULL, 
-                           .Inxn     = NULL};
+    static KALMAN_s ptr = { .PHIk_t   = NULL, 
+                            .Mk       = NULL,
+                            .H_t      = NULL, 
+                            .temp_nxp = NULL,
+                            .temp_nxn = NULL, 
+                            .temp_pxn = NULL, 
+                            .soma     = NULL, 
+                            .inv_soma = NULL, 
+                            .Inxn     = NULL};
 
     /* Inicializa as variáveis static a serem utilizadas apenas dentro aqui */
     /* ==================================================================== */
@@ -201,9 +263,9 @@ void kalman(matrix *P_k_1, matrix *PHI_k, matrix *Q_k, matrix *R_k, matrix *H, m
 
 
 
-void kalman_init(int n, int p, SKalman *ptr){
+void kalman_init(int n, int p, KALMAN_s *ptr){
 /* =========================================================================
- * Inicialização de estrutura do tipo 'SKalman' com parâmetros estáticos
+ * Inicialização de estrutura do tipo 'KALMAN_s' com parâmetros estáticos
  * os quais são utilizados recursivamente pela função de 'kalman'
  * ======================================================================= */
  
